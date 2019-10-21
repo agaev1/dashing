@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6b427071070dd1423a3655fa071b4e4ffcc1d8f71f4be80a080e6a55054aed7e"
+            "sha256": "a306107af7ed637bd0fb89cc99251dcb90c712e6e5c4aa12344402348010b54c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -107,6 +107,10 @@
                 "sha256:9fe95f19286cfefaa917656583d020be14e7859c6b0252588391e47db34527de"
             ],
             "version": "==2.10.3"
+        },
+        "kobra": {
+            "git": "https://github.com/agaev1/kobra.git",
+            "ref": "d4c6ee0883fea53b4667524adac2e5d4cce20be2"
         },
         "markupsafe": {
             "hashes": [

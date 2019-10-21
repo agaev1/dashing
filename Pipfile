@@ -11,6 +11,7 @@ autopep8 = "*"
 dash = "*"
 pandas = "*"
 requests = "*"
+kobra = {git = "https://github.com/agaev1/kobra.git"}
 
 [requires]
 python_version = "3.6"
