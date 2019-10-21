@@ -4,23 +4,28 @@ import dash_table
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from kobra import Date_custom
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 from app import app
+from kobra.enums_currencies import Currencies
+import time
 
 
 def deal_simul_dataframe():
 
     default_start = Date_custom('2019-01-01').date
     default_end = Date_custom('2019-03-03').date
-    default_amt = 2500
-    default_type = 'DEPO'
+    default_deal_numbers = [i for i in range(1, 4)]
 
     df = pd.DataFrame(
         {
-            'START': [default_start],
-            'END': [default_end],
-            'AMT_MIO': [default_amt],
-            'DEAL_TYPE': [default_type],
+            'DEAL_NO': default_deal_numbers,
+            'CURRENCY': 'NOK',
+            'COLLATERAL_CURRENCY': 'NOK',
+            'COUNTERPART': 'BANK',
+            'START': default_start,
+            'END': default_end,
+            'AMT_MIO': 2500,
+            'DEAL_TYPE': 'DEPO/FX',
         }
     )
 
@@ -31,7 +36,13 @@ def deal_simulation_table():
     df_init = deal_simul_dataframe()
     table = dash_table.DataTable(
         id='deal-table',
+        row_selectable="multi",
         columns=[
+            {'id': 'DEAL_NO', 'name': 'DEAL_NO', 'type': 'numeric'},
+            {'id': 'DEAL_TYPE', 'name': 'DEAL_TYPE', 'presentation': 'dropdown'},
+            {'id': 'CURRENCY', 'name': 'CURRENCY', 'presentation': 'dropdown'},
+            {'id': 'COLLATERAL_CURRENCY', 'name': 'COLLATERAL_CURRENCY', 'presentation': 'dropdown'},
+            {'id': 'COUNTERPART', 'name': 'COUNTERPART', 'presentation': 'dropdown'},
             {'id': 'START', 'name': 'START', 'type': 'datetime'},
             {'id': 'END', 'name': 'END', 'type': 'datetime'},
             {
@@ -42,9 +53,7 @@ def deal_simulation_table():
 
                     'specifier': ',.0f'
                 }
-            },
-            {'id': 'DEAL_TYPE', 'name': 'DEAL_TYPE', 'presentation': 'dropdown'},
-
+            }
         ],
         data=df_init.to_dict('records'),
         style_data_conditional=[
@@ -61,9 +70,27 @@ def deal_simulation_table():
             'DEAL_TYPE': {
                 'options': [
                     {'label': i, 'value': i}
-                    for i in ['DEPO', 'FX', 'LOAN']
+                    for i in ['DEPO/FX', 'SECURITY_CASH', 'REPO']
                 ]
-            }
+            },
+            'CURRENCY': {
+                'options': [
+                    {'label': i, 'value': i}
+                    for i in [x.name for x in Currencies]
+                ]
+            },
+            'COUNTERPART': {
+                'options': [
+                    {'label': i, 'value': i}
+                    for i in ['BANK', 'CB', 'CLIENT_FIN', 'CLIENT_CORP', 'CLIENT_RETAIL']
+                ]
+            },
+            'COLLATERAL_CURRENCY': {
+                'options': [
+                    {'label': i, 'value': i}
+                    for i in [x.name for x in Currencies]
+                ]
+            },
         }
     )
     return table
@@ -71,11 +98,12 @@ def deal_simulation_table():
 
 layout = html.Div(
     [
-        html.H3('TABLES!'),
-        html.P('Using the new datatables module.'),
+        html.H2('DEAL SIMULATOR'),
         dcc.Link('Go to Main Page', href='/apps/'),
+        html.H4('Enter details and press simulate'),
         deal_simulation_table(),
-        html.Div(id='deal-description')
+        html.Br(),
+        dcc.Loading(id='deal-description', type="default"),
     ]
 )
 
@@ -84,8 +112,11 @@ layout = html.Div(
 
 @app.callback(
     Output('deal-description', 'children'),
-    [Input('deal-table', 'data'),
-     Input('deal-table', 'columns')])
+    [
+        Input('deal-table', 'data'),
+        Input('deal-table', 'columns')
+    ]
+)
 def display_output(rows, columns):
     # Describe the deal, just for testing
     df = pd.DataFrame(rows, columns=[c['name'] for c in columns])
@@ -99,4 +130,6 @@ def display_output(rows, columns):
         end,
         amt
     )
+
+    time.sleep(1)
     return return_string
